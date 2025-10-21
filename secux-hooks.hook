@@ -1,0 +1,10 @@
+[Trigger]
+Operation = Install
+Operation = Upgrade
+Type = Package
+Target = secux-hooks
+
+[Action]
+Description = Update Secux Linux specific hooks.
+When = PostTransaction
+Exec = /usr/bin/secux-hooks-runner

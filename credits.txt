@@ -1,0 +1,1 @@
+EndeavourOS Team: https://github.com/endeavouros-team/PKGBUILDS

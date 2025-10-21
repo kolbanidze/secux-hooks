@@ -1,0 +1,45 @@
+#!/bin/bash
+
+Lsb_release() {
+    local file=/etc/lsb-release
+
+    if [ -z "$(grep "^DISTRIB_CODENAME=" $file)" ] ; then
+        # add missing DISTRIB_CODENAME=
+        echo "DISTRIB_CODENAME=${quote}rolling${quote}" >> $file
+    fi
+    sed -i $file \
+        -e "s|^DISTRIB_ID=.*|DISTRIB_ID=${quote}Secux Linux${quote}|" \
+        -e "s|^DISTRIB_CODENAME=.*|DISTRIB_CODENAME=${quote}rolling${quote}|" \
+        -e "s|^DISTRIB_DESCRIPTION=.*|DISTRIB_DESCRIPTION=${quote}Secux Linux${quote}|" \
+        -e "s|^DISTRIB_RELEASE=\"\(.*\)\"|DISTRIB_RELEASE=${quote}\1${quote}|"
+}
+
+Os_release() {
+    local file=/usr/lib/os-release
+
+    local home=https://github.com/kolbanidze/secux-iso
+
+    cp /etc/secux-release /etc/os-release
+}
+
+Issues() {
+    sed -i 's|Arch|Secux|g' /etc/issue /usr/share/factory/etc/issue
+}
+
+Main()
+{
+    local hookname="$1"
+    local quote="'"
+    quote='\"'
+
+    case "$hookname" in
+        os-release)  Os_release ;;
+        lsb-release) Lsb_release ;;
+        "")          Os_release
+                     Lsb_release
+                     Issues
+                     ;;
+    esac
+}
+
+Main "$@"
