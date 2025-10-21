@@ -1,37 +1,48 @@
 #!/bin/bash
 
+# Overwrite the contents of /etc/lsb-release
 Lsb_release() {
     local file=/etc/lsb-release
-
-    if [ -z "$(grep "^DISTRIB_CODENAME=" $file)" ] ; then
-        # add missing DISTRIB_CODENAME=
-        echo "DISTRIB_CODENAME=${quote}rolling${quote}" >> $file
+    if [ ! -f "$file" ]; then
+        echo "lsb-release file not found. Exiting..."
+        exit 0
     fi
-    sed -i $file \
-        -e "s|^DISTRIB_ID=.*|DISTRIB_ID=${quote}Secux Linux${quote}|" \
-        -e "s|^DISTRIB_CODENAME=.*|DISTRIB_CODENAME=${quote}rolling${quote}|" \
-        -e "s|^DISTRIB_DESCRIPTION=.*|DISTRIB_DESCRIPTION=${quote}Secux Linux${quote}|" \
-        -e "s|^DISTRIB_RELEASE=\"\(.*\)\"|DISTRIB_RELEASE=${quote}\1${quote}|"
+
+    # Overwrite with the specified contents
+    cat <<EOF > $file
+DISTRIB_ID="Secux Linux"
+DISTRIB_RELEASE="rolling"
+DISTRIB_DESCRIPTION="Secux Linux"
+EOF
 }
 
+# Overwrite the contents of /etc/os-release
 Os_release() {
     local file=/usr/lib/os-release
+    if [ ! -f "$file" ]; then
+        echo "os-release file not found. Exiting..."
+        exit 0
+    fi
 
-    local home=https://github.com/kolbanidze/secux-iso
-
-    cp /etc/secux-release /etc/os-release
+    # Overwrite with the specified contents
+    cat <<EOF > $file
+NAME="Secux Linux"
+PRETTY_NAME="Secux Linux"
+BUILD_ID=rolling
+HOME_URL="https://github.com/kolbanidze/secux-iso"
+LOGO=SecuxLinux
+EOF
 }
 
+# Replace "Arch" with "Secux" in issue files
 Issues() {
     sed -i 's|Arch|Secux|g' /etc/issue /usr/share/factory/etc/issue
 }
 
-Main()
-{
+# Main function to run the appropriate update based on the hookname argument
+Main() {
     local hookname="$1"
-    local quote="'"
-    quote='\"'
-
+    
     case "$hookname" in
         os-release)  Os_release ;;
         lsb-release) Lsb_release ;;
@@ -39,7 +50,10 @@ Main()
                      Lsb_release
                      Issues
                      ;;
+        *)           echo "Invalid argument. Use 'os-release', 'lsb-release', or nothing." ;;
     esac
 }
 
+# Run the main function with the provided argument
 Main "$@"
+
