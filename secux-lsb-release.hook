@@ -7,4 +7,4 @@ Target = lsb-release
 [Action]
 Description = Add Secux Linux specific config.
 When = PostTransaction
-Exec = /usr/bin/eos-hooks-runner lsb-release
+Exec = /usr/bin/secux-hooks-runner lsb-release
