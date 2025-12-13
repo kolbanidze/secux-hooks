@@ -1,14 +1,10 @@
 [Trigger]
 Operation = Install
 Operation = Upgrade
-Type = Package
-Target = mkinitcpio
-Target = linux
-Target = linux-lts
-Target = linux-hardened
-Target = linux-zen
+Type = Path
+Target = etc/mkinitcpio.d/*.preset
 
 [Action]
 Description = Configure Secux mkinitcpio presets.
 When = PostTransaction
-Exec = /usr/bin/secux-hooks-runner mkinitcpio
+Exec = /path/to/runner mkinitcpio

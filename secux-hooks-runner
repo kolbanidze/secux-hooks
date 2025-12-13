@@ -57,45 +57,29 @@ Mkinitcpio_presets() {
     for file in "$preset_dir"/*.preset; do
         [ -e "$file" ] || continue
         
-        # Extract kernel name (e.g., 'linux' from 'linux.preset')
         local kver=$(basename "$file" .preset)
+        local uki_path="${uki_dir}/secux-${kver}.efi"
 
         # --- 1. Modify Preset File ---
-
-        # Set PRESETS to only 'default'
-        if grep -q "PRESETS=" "$file"; then
-            sed -i "s|^#\?PRESETS=.*|PRESETS=('default')|" "$file"
-        else
-            echo "PRESETS=('default')" >> "$file"
-        fi
-
-        # Configure default_uki path
-        # Changes path to /efi/EFI/secux/secux-<kernel>.efi
-        local uki_path="${uki_dir}/secux-${kver}.efi"
+        # Мы используем один вызов sed для всех операций.
+        # Если строки нет в файле, она не заменится (для стандартных пресетов Arch это ок, так как они там есть).
         
-        if grep -q "default_uki=" "$file"; then
-            sed -i "s|^#\?default_uki=.*|default_uki=\"${uki_path}\"|" "$file"
-        else
-            echo "default_uki=\"${uki_path}\"" >> "$file"
+        sed -i \
+            -e "s|^#\?PRESETS=.*|PRESETS=('default')|" \
+            -e "s|^#\?default_uki=.*|default_uki=\"${uki_path}\"|" \
+            -e 's|^#\?default_options=.*|default_options=""|' \
+            -e 's|^default_image|#default_image|' \
+            -e 's|^default_config|#default_config|' \
+            -e 's|^fallback_|#fallback_|' \
+            "$file"
+
+        # Дополнительная страховка: если вдруг в файле вообще не было переменной default_uki (что редкость),
+        # добавляем её в конец.
+        if ! grep -q "default_uki=" "$file"; then
+             echo "default_uki=\"${uki_path}\"" >> "$file"
         fi
-
-        # Ensure default_options is empty
-        if grep -q "default_options=" "$file"; then
-            sed -i 's|^#\?default_options=.*|default_options=""|' "$file"
-        else
-            echo 'default_options=""' >> "$file"
-        fi
-
-        # Comment out standard images and configs (force UKI)
-        sed -i 's|^default_image|#default_image|' "$file"
-        sed -i 's|^default_config|#default_config|' "$file"
-        sed -i 's|^fallback_|#fallback_|' "$file"
-
+        
         # --- 2. Create systemd-boot entry ---
-        
-        # Entry file: /efi/loader/entries/secux-<kernel>.conf
-        # Path for loader relative to ESP root: /EFI/secux/secux-<kernel>.efi
-        
         local entry_file="${loader_dir}/secux-${kver}.conf"
         local relative_uki_path="/EFI/secux/secux-${kver}.efi"
 
