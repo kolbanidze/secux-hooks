@@ -8,7 +8,6 @@ Lsb_release() {
         exit 0
     fi
 
-    # Overwrite with the specified contents
     cat <<EOF > $file
 DISTRIB_ID="Secux Linux"
 DISTRIB_RELEASE="rolling"
@@ -24,7 +23,6 @@ Os_release() {
         exit 0
     fi
 
-    # Overwrite with the specified contents
     cat <<EOF > $file
 NAME="Secux Linux"
 PRETTY_NAME="Secux Linux"
@@ -39,33 +37,41 @@ Issues() {
     sed -i 's|Arch|Secux|g' /etc/issue /usr/share/factory/etc/issue
 }
 
-# Modify mkinitcpio presets for Secux specifics
+# Modify mkinitcpio presets and create systemd-boot entries
 Mkinitcpio_presets() {
     local preset_dir="/etc/mkinitcpio.d"
+    local efi_mount="/efi"
+    local uki_dir="${efi_mount}/EFI/secux"
+    local loader_dir="${efi_mount}/loader/entries"
     
-    # Check if directory exists
+    # Check if preset directory exists
     if [ ! -d "$preset_dir" ]; then
         return
     fi
 
-    # Loop through all preset files (linux.preset, linux-lts.preset, etc.)
+    # Ensure target directories exist
+    mkdir -p "$uki_dir"
+    mkdir -p "$loader_dir"
+
+    # Loop through all preset files
     for file in "$preset_dir"/*.preset; do
         [ -e "$file" ] || continue
         
         # Extract kernel name (e.g., 'linux' from 'linux.preset')
         local kver=$(basename "$file" .preset)
 
-        # 1. Set PRESETS to only 'default' (remove fallback)
-        # Regex matches PRESETS=... regardless of comments
+        # --- 1. Modify Preset File ---
+
+        # Set PRESETS to only 'default'
         if grep -q "PRESETS=" "$file"; then
             sed -i "s|^#\?PRESETS=.*|PRESETS=('default')|" "$file"
         else
             echo "PRESETS=('default')" >> "$file"
         fi
 
-        # 2. Configure default_uki path
-        # Changes /efi/EFI/Linux/arch-linux.efi to /efi/EFI/secux/secux-linux.efi
-        local uki_path="/efi/EFI/secux/secux-${kver}.efi"
+        # Configure default_uki path
+        # Changes path to /efi/EFI/secux/secux-<kernel>.efi
+        local uki_path="${uki_dir}/secux-${kver}.efi"
         
         if grep -q "default_uki=" "$file"; then
             sed -i "s|^#\?default_uki=.*|default_uki=\"${uki_path}\"|" "$file"
@@ -73,23 +79,35 @@ Mkinitcpio_presets() {
             echo "default_uki=\"${uki_path}\"" >> "$file"
         fi
 
-        # 3. Ensure default_options is empty
+        # Ensure default_options is empty
         if grep -q "default_options=" "$file"; then
             sed -i 's|^#\?default_options=.*|default_options=""|' "$file"
         else
             echo 'default_options=""' >> "$file"
         fi
 
-        # 4. Comment out standard images (since we are using UKI)
+        # Comment out standard images and configs (force UKI)
         sed -i 's|^default_image|#default_image|' "$file"
         sed -i 's|^default_config|#default_config|' "$file"
-
-        # 5. Comment out all fallback configurations
         sed -i 's|^fallback_|#fallback_|' "$file"
+
+        # --- 2. Create systemd-boot entry ---
+        
+        # Entry file: /efi/loader/entries/secux-<kernel>.conf
+        # Path for loader relative to ESP root: /EFI/secux/secux-<kernel>.efi
+        
+        local entry_file="${loader_dir}/secux-${kver}.conf"
+        local relative_uki_path="/EFI/secux/secux-${kver}.efi"
+
+        cat <<EOF > "$entry_file"
+title Secux Linux (${kver})
+efi ${relative_uki_path}
+EOF
+
     done
 }
 
-# Main function to run the appropriate update based on the hookname argument
+# Main function
 Main() {
     local hookname="$1"
     
@@ -106,5 +124,4 @@ Main() {
     esac
 }
 
-# Run the main function with the provided argument
 Main "$@"
