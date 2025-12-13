@@ -39,6 +39,56 @@ Issues() {
     sed -i 's|Arch|Secux|g' /etc/issue /usr/share/factory/etc/issue
 }
 
+# Modify mkinitcpio presets for Secux specifics
+Mkinitcpio_presets() {
+    local preset_dir="/etc/mkinitcpio.d"
+    
+    # Check if directory exists
+    if [ ! -d "$preset_dir" ]; then
+        return
+    fi
+
+    # Loop through all preset files (linux.preset, linux-lts.preset, etc.)
+    for file in "$preset_dir"/*.preset; do
+        [ -e "$file" ] || continue
+        
+        # Extract kernel name (e.g., 'linux' from 'linux.preset')
+        local kver=$(basename "$file" .preset)
+
+        # 1. Set PRESETS to only 'default' (remove fallback)
+        # Regex matches PRESETS=... regardless of comments
+        if grep -q "PRESETS=" "$file"; then
+            sed -i "s|^#\?PRESETS=.*|PRESETS=('default')|" "$file"
+        else
+            echo "PRESETS=('default')" >> "$file"
+        fi
+
+        # 2. Configure default_uki path
+        # Changes /efi/EFI/Linux/arch-linux.efi to /efi/EFI/secux/secux-linux.efi
+        local uki_path="/efi/EFI/secux/secux-${kver}.efi"
+        
+        if grep -q "default_uki=" "$file"; then
+            sed -i "s|^#\?default_uki=.*|default_uki=\"${uki_path}\"|" "$file"
+        else
+            echo "default_uki=\"${uki_path}\"" >> "$file"
+        fi
+
+        # 3. Ensure default_options is empty
+        if grep -q "default_options=" "$file"; then
+            sed -i 's|^#\?default_options=.*|default_options=""|' "$file"
+        else
+            echo 'default_options=""' >> "$file"
+        fi
+
+        # 4. Comment out standard images (since we are using UKI)
+        sed -i 's|^default_image|#default_image|' "$file"
+        sed -i 's|^default_config|#default_config|' "$file"
+
+        # 5. Comment out all fallback configurations
+        sed -i 's|^fallback_|#fallback_|' "$file"
+    done
+}
+
 # Main function to run the appropriate update based on the hookname argument
 Main() {
     local hookname="$1"
@@ -46,14 +96,15 @@ Main() {
     case "$hookname" in
         os-release)  Os_release ;;
         lsb-release) Lsb_release ;;
+        mkinitcpio)  Mkinitcpio_presets ;;
         "")          Os_release
                      Lsb_release
                      Issues
+                     Mkinitcpio_presets
                      ;;
-        *)           echo "Invalid argument. Use 'os-release', 'lsb-release', or nothing." ;;
+        *)           echo "Invalid argument. Use 'os-release', 'lsb-release', 'mkinitcpio' or nothing." ;;
     esac
 }
 
 # Run the main function with the provided argument
 Main "$@"
-
