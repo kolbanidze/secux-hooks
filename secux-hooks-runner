@@ -60,10 +60,7 @@ Mkinitcpio_presets() {
         local kver=$(basename "$file" .preset)
         local uki_path="${uki_dir}/secux-${kver}.efi"
 
-        # --- 1. Modify Preset File ---
-        # Мы используем один вызов sed для всех операций.
-        # Если строки нет в файле, она не заменится (для стандартных пресетов Arch это ок, так как они там есть).
-        
+        # Modify Preset File         
         sed -i \
             -e "s|^#\?PRESETS=.*|PRESETS=('default')|" \
             -e "s|^#\?default_uki=.*|default_uki=\"${uki_path}\"|" \
@@ -73,13 +70,10 @@ Mkinitcpio_presets() {
             -e 's|^fallback_|#fallback_|' \
             "$file"
 
-        # Дополнительная страховка: если вдруг в файле вообще не было переменной default_uki (что редкость),
-        # добавляем её в конец.
         if ! grep -q "default_uki=" "$file"; then
              echo "default_uki=\"${uki_path}\"" >> "$file"
         fi
         
-        # --- 2. Create systemd-boot entry ---
         local entry_file="${loader_dir}/secux-${kver}.conf"
         local relative_uki_path="/EFI/secux/secux-${kver}.efi"
 

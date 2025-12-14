@@ -2,9 +2,9 @@
 Operation = Install
 Operation = Upgrade
 Type = Path
-Target = etc/mkinitcpio.d/*.preset
+Target = /etc/mkinitcpio.d/*.preset
 
 [Action]
 Description = Configure Secux mkinitcpio presets.
 When = PostTransaction
-Exec = /path/to/runner mkinitcpio
+Exec = /usr/bin/secux-hooks-runner mkinitcpio
