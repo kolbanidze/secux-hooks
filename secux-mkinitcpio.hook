@@ -11,4 +11,5 @@ Target = linux-rt
 [Action]
 Description = Configure Secux mkinitcpio presets.
 When = PostTransaction
+NeedsTargets
 Exec = /usr/bin/secux-hooks-runner mkinitcpio
