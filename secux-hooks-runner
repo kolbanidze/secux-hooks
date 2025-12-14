@@ -39,50 +39,44 @@ Issues() {
 
 # Modify mkinitcpio presets and create systemd-boot entries
 Mkinitcpio_presets() {
-    local preset_dir="/etc/mkinitcpio.d"
     local efi_mount="/efi"
     local uki_dir="${efi_mount}/EFI/secux"
     local loader_dir="${efi_mount}/loader/entries"
+    local hook_preset="/usr/share/mkinitcpio/hook.preset"
     
-    # Check if preset directory exists
-    if [ ! -d "$preset_dir" ]; then
+    # Check if hook.preset exists
+    if [ ! -f "$hook_preset" ]; then
         return
     fi
 
     # Ensure target directories exist
     mkdir -p "$uki_dir"
     mkdir -p "$loader_dir"
+    
+    # Modify /usr/share/mkinitcpio/hook.preset
+    # Remove fallback preset line
+    sed -i '/#PRESETS=.*fallback/d' "$hook_preset"
+    
+    # Comment out default_image
+    sed -i 's/^default_image=/#default_image=/' "$hook_preset"
+    
+    # Uncomment and change default_uki path
+    sed -i 's|^#default_uki="/efi/EFI/Linux/arch-%PKGBASE%.efi"|default_uki="/efi/EFI/secux/secux-%PKGBASE%.efi"|' "$hook_preset"
+    
+    # Uncomment and clear default_options
+    sed -i 's|^#default_options="--splash.*"|default_options=""|' "$hook_preset"
+    
+    # Change fallback_uki path (keep commented)
+    sed -i 's|^#fallback_uki="/efi/EFI/Linux/arch-%PKGBASE%-fallback.efi"|#fallback_uki="/efi/EFI/secux/secux-%PKGBASE%-fallback.efi"|' "$hook_preset"
+    
+    # Create loader entry
+    local entry_file="${loader_dir}/secux-${kver}.conf"
+    local relative_uki_path="/EFI/secux/secux-${kver}.efi"
 
-    # Loop through all preset files
-    for file in "$preset_dir"/*.preset; do
-        [ -e "$file" ] || continue
-        
-        local kver=$(basename "$file" .preset)
-        local uki_path="${uki_dir}/secux-${kver}.efi"
-
-        # Modify Preset File         
-        sed -i \
-            -e "s|^#\?PRESETS=.*|PRESETS=('default')|" \
-            -e "s|^#\?default_uki=.*|default_uki=\"${uki_path}\"|" \
-            -e 's|^#\?default_options=.*|default_options=""|' \
-            -e 's|^default_image|#default_image|' \
-            -e 's|^default_config|#default_config|' \
-            -e 's|^fallback_|#fallback_|' \
-            "$file"
-
-        if ! grep -q "default_uki=" "$file"; then
-             echo "default_uki=\"${uki_path}\"" >> "$file"
-        fi
-        
-        local entry_file="${loader_dir}/secux-${kver}.conf"
-        local relative_uki_path="/EFI/secux/secux-${kver}.efi"
-
-        cat <<EOF > "$entry_file"
+    cat <<EOF > "$entry_file"
 title Secux Linux (${kver})
 efi ${relative_uki_path}
 EOF
-
-    done
 }
 
 # Main function

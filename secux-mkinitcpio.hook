@@ -1,8 +1,12 @@
 [Trigger]
 Operation = Install
 Operation = Upgrade
-Type = Path
-Target = /etc/mkinitcpio.d/*.preset
+Type = Package
+Target = linux
+Target = linux-lts
+Target = linux-hardened
+Target = linux-zen
+Target = linux-rt
 
 [Action]
 Description = Configure Secux mkinitcpio presets.
