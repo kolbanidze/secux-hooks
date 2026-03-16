@@ -5,6 +5,7 @@ Type = Package
 Target = linux
 Target = linux-lts
 Target = linux-hardened
+Target = linux-secux
 Target = linux-zen
 Target = linux-rt
 
