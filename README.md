@@ -1,13 +1,15 @@
 # secux-hooks
 
-В этом репозитории хранится исходник пакета secux-hooks, необходимый для обновления параметров и функций системы при обновлении. 
+[![Russian](https://img.shields.io/badge/README-на_русском-red.svg)](README.ru.md)
 
-Пример: при установке пакета linux будет автоматически меняться конфигурация `/etc/mkinitcpio.d/linux.preset` для генерации UKI файлов.
+This repository contains the source code of the secux-hooks package, necessary for updating system parameters and functions during an update. 
 
-## Установка
+Example: when installing the linux package, the /etc/mkinitcpio.d/linux.preset configuration will be automatically changed to generate UKI files.
 
-Устанавливается по умолчанию в Secux Linux.
+## Installation
 
-Для ручной установки используйте: `pacman -Sy secux-hooks`
+Installed by default in Secux Linux.
 
-Для установки необходим репозиторий ПО [secux-repo](https://github.com/kolbanidze/secux-repo)
+For manual installation, use: `pacman -Sy secux-hooks`
+
+For installation, the [secux-repo](https://github.com/kolbanidze/secux-repo) software repository is required.
