@@ -1,5 +1,5 @@
 pkgname=secux-hooks
-pkgver=1.6.0
+pkgver=1.7.0
 pkgrel=1
 pkgdesc='Secux Linux branding, hooks and configuration'
 arch=('any')
@@ -23,9 +23,10 @@ source=(
   "SecuxLinux.svg"
   "SecuxLinux-text.svg"
   "SecuxLinux-text-dark.svg"
+  "patches/001-dirtyfrag.sh"
 )
 
-sha512sums=('5c2a8446c8632f6978d7a0178366696d5e5ad7c79a74d79d1deb67d638c179b5dec8926c3666b586118e76592039d0479a02ad89154838c17c0a6e9301657a68'
+sha512sums=('12880e7afab9ca997240376a7d54b0c018120bbf7fa0c346a5282821de89d26c519631622b7e346ca8d706339b15d2dddb7d7505a6c64428f0ae592967705df0'
             '20364062be82582df379fa4e7072e2add01f76c94340bad71b3ad7d1db28ee64be1d386a837730fac5ab1c42e78cabe842b63e79b3c744c5ae5248ef7a89da25'
             '9c4ccf9daecb0074cf19622b1a512df1fa6cadb3ac2004f6f657963dbc2e60cd4d7fba1aee80274d5b1fbe15a9767b44d3bd3afbb7c5cd36ab0c45f03088e279'
             '32f131a5e383d7f5c86ff4adc81222e47911b2dd8d25efacce86bbdd53f13e6ccb83ae70127f6ee1052704373817370cf0d7e7b80a863d666c9d0a2e1bb68484'
@@ -33,7 +34,8 @@ sha512sums=('5c2a8446c8632f6978d7a0178366696d5e5ad7c79a74d79d1deb67d638c179b5dec
             'eb03f272fac4bc4a85cae68a4e84b3ed36ac53d310eaca3318134c9dbc15dce4f0644c6ac4c6b4fa7f5aca3283598e7dad0cb84655bd0a27c7a77c9e14798ac3'
             '705436f5888852c1581a323b484dda41ffc67fb9c19b6ee6b9cbc12376a27061af984980f80746bc54a48f97b2e077bf3dd44a4fb5c34d8b6eb525786ce416f1'
             'f1ac2726af4b7665a4821349e8d8c2f64cfb594925a3a1927316bd95ccc2d49a18d4ee0c2351f40ce269733b3004a33067718bde852df2a9f72356b8952b1915'
-            '93ba2fd476be0519439bf10e6b4047f7cbf856ff852c34d0bae847ed4e8569ede898cebd8134de18dcf2758836a99fd465906856436b4926cfd06dbe0a191ec3')
+            '93ba2fd476be0519439bf10e6b4047f7cbf856ff852c34d0bae847ed4e8569ede898cebd8134de18dcf2758836a99fd465906856436b4926cfd06dbe0a191ec3'
+            '0993049c12e7927d6a88dc6f7e409d628b2813a6633e7f075581150a284ffc7fad2f8536e6878c31546ea6cf39d6e81b20c0d60636805b67f0480b955e82659d')
 
 package() {
   install -Dm755 secux-hooks-runner "$pkgdir/usr/bin/secux-hooks-runner"
@@ -51,4 +53,6 @@ package() {
     
   install -Dm644 99_secux_gnome.gschema.override \
     "$pkgdir/usr/share/glib-2.0/schemas/99_secux_gnome.gschema.override"
+  
+  install -Dm755 001-dirtyfrag.sh "$pkgdir/usr/share/secux-hooks/patches/001-dirtyfrag.sh"
 }

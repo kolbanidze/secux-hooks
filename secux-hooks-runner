@@ -5,7 +5,7 @@ Lsb_release() {
     local file=/etc/lsb-release
     if [ ! -f "$file" ]; then
         echo "lsb-release file not found. Exiting..."
-        exit 0
+        return 0
     fi
 
     cat <<EOF > $file
@@ -15,12 +15,51 @@ DISTRIB_DESCRIPTION="Secux Linux"
 EOF
 }
 
+# Manage automatic security hotpatches
+Security_Patches() {
+    local patch_dir="/usr/share/secux-hooks/patches"
+    local state_dir="/var/lib/secux-hooks/patches"
+
+    mkdir -p "$state_dir"
+    mkdir -p "$patch_dir"
+
+    shopt -s nullglob
+
+    # Revert
+    for applied in "$state_dir"/*.sh; do
+        local patch_name=$(basename "$applied")
+        if [ ! -f "$patch_dir/$patch_name" ]; then
+            echo "Reverting legacy security patch: $patch_name"
+            source "$applied"
+            if declare -f patch_revert > /dev/null; then
+                patch_revert
+            fi
+            rm -f "$applied"
+        fi
+    done
+
+    # Apply
+    for patch in "$patch_dir"/*.sh; do
+        local patch_name=$(basename "$patch")
+        if [ ! -f "$state_dir/$patch_name" ]; then
+            echo "Applying new security patch: $patch_name"
+            source "$patch"
+            if declare -f patch_apply > /dev/null; then
+                patch_apply
+            fi
+            cp "$patch" "$state_dir/$patch_name"
+        fi
+    done
+
+    shopt -u nullglob
+}
+
 # Overwrite the contents of /etc/os-release
 Os_release() {
     local file=/usr/lib/os-release
     if [ ! -f "$file" ]; then
         echo "os-release file not found. Exiting..."
-        exit 0
+        return 0
     fi
 
     cat <<EOF > $file
@@ -115,6 +154,7 @@ Main() {
                      Lsb_release
                      Issues
                      Mkinitcpio_presets
+                     Security_Patches
                      ;;
         *)           echo "Invalid argument. Use 'os-release', 'lsb-release', 'mkinitcpio' or nothing." ;;
     esac
