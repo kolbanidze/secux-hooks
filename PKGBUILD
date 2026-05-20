@@ -1,5 +1,5 @@
 pkgname=secux-hooks
-pkgver=1.7.0
+pkgver=1.7.1
 pkgrel=1
 pkgdesc='Secux Linux branding, hooks and configuration'
 arch=('any')
@@ -23,7 +23,8 @@ source=(
   "SecuxLinux.svg"
   "SecuxLinux-text.svg"
   "SecuxLinux-text-dark.svg"
-  "patches/001-dirtyfrag.sh"
+  "001-dirtyfrag.sh"
+  "002-pintheft.sh"
 )
 
 sha512sums=('12880e7afab9ca997240376a7d54b0c018120bbf7fa0c346a5282821de89d26c519631622b7e346ca8d706339b15d2dddb7d7505a6c64428f0ae592967705df0'
@@ -35,7 +36,8 @@ sha512sums=('12880e7afab9ca997240376a7d54b0c018120bbf7fa0c346a5282821de89d26c519
             '705436f5888852c1581a323b484dda41ffc67fb9c19b6ee6b9cbc12376a27061af984980f80746bc54a48f97b2e077bf3dd44a4fb5c34d8b6eb525786ce416f1'
             'f1ac2726af4b7665a4821349e8d8c2f64cfb594925a3a1927316bd95ccc2d49a18d4ee0c2351f40ce269733b3004a33067718bde852df2a9f72356b8952b1915'
             '93ba2fd476be0519439bf10e6b4047f7cbf856ff852c34d0bae847ed4e8569ede898cebd8134de18dcf2758836a99fd465906856436b4926cfd06dbe0a191ec3'
-            '0993049c12e7927d6a88dc6f7e409d628b2813a6633e7f075581150a284ffc7fad2f8536e6878c31546ea6cf39d6e81b20c0d60636805b67f0480b955e82659d')
+            '0993049c12e7927d6a88dc6f7e409d628b2813a6633e7f075581150a284ffc7fad2f8536e6878c31546ea6cf39d6e81b20c0d60636805b67f0480b955e82659d'
+            'c4ec8a81d63ecffd4f35bfad04214cbd10f084aa9ecf35e9cf8c1cd92b14a64834975ec0127f9edb19afd4e7a2e28e94e1ec570051b08f50746c645937e481e2')
 
 package() {
   install -Dm755 secux-hooks-runner "$pkgdir/usr/bin/secux-hooks-runner"
@@ -55,4 +57,5 @@ package() {
     "$pkgdir/usr/share/glib-2.0/schemas/99_secux_gnome.gschema.override"
   
   install -Dm755 001-dirtyfrag.sh "$pkgdir/usr/share/secux-hooks/patches/001-dirtyfrag.sh"
+  install -Dm755 002-pintheft.sh "$pkgdir/usr/share/secux-hooks/patches/002-pintheft.sh"
 }
